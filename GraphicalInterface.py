@@ -7,16 +7,22 @@ from time import sleep
 
 
 class GraphicalInterfaceForGame:
-    def __init__(self,diffrentRules = False):
-
-        if diffrentRules == False:
-            self._logic = StandardRules(7,6)
-
+    def __init__(self):
         self._mainWindow = Tk()
         self._mainWindow.title("Connect 4 by Radoslaw Suder")
+        self.GraphicForClassicGame()
+
+
+
+
+
+
+    def GraphicForClassicGame(self):
+        self._logic = StandardRules(7, 6)
 
         self._mainWindow.geometry("700x660")
-        self._mainWindow.resizable(0,0)
+        self._mainWindow.resizable(0, 0)
+
         self._header = self._CreateHeader()
 
         self._blueImage = Image.open("images\\red_full.png")
@@ -29,9 +35,7 @@ class GraphicalInterfaceForGame:
         self._barToDropCoins = self._CreateBarToDropCoins()
         self.ChangeColorOfCoinsInHeader()
         self.board = self._CreateBoard()
-
-
-
+        self._endGameWithTie = None
 
 
     def _CreateHeader(self):
@@ -49,7 +53,7 @@ class GraphicalInterfaceForGame:
                               bg = self._logic.colorOfActivePlayer())
         whosTurnLabel.grid(row = 0, column = 1)
 
-        resetButton = Button(headerFrame,text = "Restart Gry")
+        resetButton = Button(headerFrame,text = "Restart Gry", command = lambda:self.Restart())
         resetButton.grid(row =0, column = 2 )
 
         return headerFrame
@@ -93,37 +97,56 @@ class GraphicalInterfaceForGame:
 
 
     def DropCoin(self,columnToDropCoin):
+        self.BlockButtonsForDroppingCoins()
+
         try:
             self._logic.DropCoin(columnToDropCoin)
         except Errors.FullColumnException:
-            print("zla kolumna")
+            self.PopupFullColumn()
+            return
+        except Errors.FullGameBoardException:
+            self._endGameWithTie = True
 
-        for child in self._barToDropCoins.winfo_children():
-            child.configure(state='disable')
+
+
 
         self.AnimateDropingCoin(columnToDropCoin)
         self.PrintCoins()
 
         self._logic.CheckWin()
         if self._logic.WhoWins() == 1 or self._logic.WhoWins() == 2:
-            self.PopupForWinner()
+            #self.BlockButtonsForDroppingCoins()
+            win = self.PopupForWinner()
+            self._mainWindow.wait_window(win)
+
             #self.Restart()
+        if self._endGameWithTie == True:
+            full = self.PopupFullGameBoard()
+            self._mainWindow.wait_window(full)
+
 
         self._logic.ChangeActivePlayer()
 
         self._header.winfo_children()[1].configure(text = "Tura Gracza " + str(self._logic.ActivePlayer()),
                                                    bg = self._logic.colorOfActivePlayer())
         self.ChangeColorOfCoinsInHeader()
+        self.UnlockButtonsForDroppingCoins()
+
+        #self._header.update()
 
 
-        #self.Restart()
 
+    def BlockButtonsForDroppingCoins(self):
+        for child in self._barToDropCoins.winfo_children():
+            child.configure(state='disable')
 
-        self._header.update()
-
+    def UnlockButtonsForDroppingCoins(self):
         for child in self._barToDropCoins.winfo_children():
             child.configure(state='normal')
-        # self._mainWindow.update()
+
+
+
+
 
     def ChangeColorOfCoinsInHeader(self):
         for numberOfButtons in range(0,self._logic.numberOfCols):
@@ -134,10 +157,10 @@ class GraphicalInterfaceForGame:
 
 
     def PrintCoins(self):
-        for elem in self._logic.Board()[::-1]:
-            print(elem)
-            iter = 0
-            iter2= 0
+        # for elem in self._logic.Board()[::-1]:
+        #     print(elem)
+        iter = 0
+        iter2= 0
 
         for eachRow in self._logic.Board()[::-1]:
             for oneElemInRow in eachRow:
@@ -155,7 +178,7 @@ class GraphicalInterfaceForGame:
 
 
     def AnimateDropingCoin(self,column):
-        print()
+        #print()
         iter = 0
         for eachRow in self._logic.Board()[::-1]:
             if eachRow[column-1] is not None:
@@ -177,16 +200,38 @@ class GraphicalInterfaceForGame:
         congrats = Label(top, text = "Wygrał Gracz "  + str(self._logic.WhoWins()) ,font = ("Arial",31),
                          bg = self._logic.colorOfActivePlayer()    )
         congrats.place(x=0, y=0)
-        okButton =  Button(top,text = "Zakończ" , command = top.destroy )
+        okButton =  Button(top,text = "Zakończ" , command = lambda:[top.destroy(),self.Restart()] )
+        okButton.place(x=125,y=60)
+
+    def PopupFullColumn(self):
+        popUpFull = Toplevel(width=300, height=100, bg="white")
+        popUpFull.resizable(0, 0)
+        popUpFull.title("Kolumna Pełna")
+        fullColumnLabel = Label(popUpFull, text="Nie można wrzucić monety do pełnej kolumny", font=("Arial", 10),
+                         bg="white")
+        fullColumnLabel.place(x=0, y=0)
+        okButton = Button(popUpFull, text="Rozumiem", command=lambda: [popUpFull.destroy(),self.UnlockButtonsForDroppingCoins()])
+        okButton.place(x=125, y=60)
+
+    def PopupFullGameBoard(self):
+
+        windowForTie = Toplevel(width = 300, height = 100, bg = "blue" )
+        windowForTie.resizable(0,0)
+        windowForTie.title("Remis")
+        tieLabel = Label(windowForTie, text = "Remis " ,font = ("Arial",31),
+                         bg = "blue"  )
+        tieLabel.place(x=80, y=0)
+        okButton =  Button(windowForTie,text = "Zakończ" , command = lambda:[windowForTie.destroy(),self.Restart()] )
         okButton.place(x=125,y=60)
 
 
+
+
     def Restart(self):
-        #TODO
         self._header.destroy()
         self.board.destroy()
         self._barToDropCoins.destroy()
-        self.__init__(False)
+        self.GraphicForClassicGame()
 
 
 

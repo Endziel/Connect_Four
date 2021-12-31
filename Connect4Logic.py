@@ -1,6 +1,7 @@
 import random
 
 
+
 from Errors import *
 
 
@@ -76,13 +77,15 @@ class StandardRules(MainLogic):
                 if rows[column-1] is None:
                     rows[column-1] = self._whosTurn
                     self._numberOfMovesInGame += 1
+                    if self._IsTie():
+                        raise FullGameBoardException("Limit ruchow wyczerpany")
                     break
                 else:
                     continue
         else:
             raise FullColumnException("Ta kolumna jest pełna")
 
-    def IsTie(self):
+    def _IsTie(self):
         return self._numberOfMovesInGame == self._numberOfRows * self._numberOfCols
 
     def WhoWins(self):
@@ -92,10 +95,10 @@ class StandardRules(MainLogic):
             return 0
 
 
-    def CheckWinHorizontally(self):
+    def _CheckWinHorizontally(self,board):
         maxConnectedByFirstPlayer = 0
         maxConnectedBySecondPlayer = 0
-        for oneRow in self._gameBoard:
+        for oneRow in board:
             for oneElem in oneRow:
                 if oneElem == 1:
                     maxConnectedByFirstPlayer +=1
@@ -113,8 +116,39 @@ class StandardRules(MainLogic):
             maxConnectedByFirstPlayer = 0
             maxConnectedBySecondPlayer = 0
 
+    def _CheckWinVertially(self):
+        flippedGameBoard = [[x[y] for x in self._gameBoard] for y in range(len(self._gameBoard) +1)]
+        # for elem in flippedGameBoard:
+        #     print(elem)
+        # print()
+        self._CheckWinHorizontally(flippedGameBoard)
+
+
+
+
+    def CheckWinDiagonally(self):
+        fdiag = [[] for forwardDiag in range(self.numberOfRows + self.numberOfCols - 1)]
+        bdiag = [[] for backDiag in range(len(fdiag))]
+        min_bdiag = self.numberOfRows + 1
+
+        for x in range(self.numberOfCols):
+            for y in range(self.numberOfRows):
+                fdiag[x + y].append(self._gameBoard[y][x])
+                bdiag[x - y - min_bdiag].append(self._gameBoard[y][x])
+
+        # print(fdiag)
+        # print(bdiag)
+
+        self._CheckWinHorizontally(fdiag)
+        self._CheckWinHorizontally(bdiag)
+
+
+
     def CheckWin(self):
-        self.CheckWinHorizontally()
+        self._CheckWinHorizontally(self._gameBoard)
+        self._CheckWinVertially()
+        self.CheckWinDiagonally()
+
 
 
 
@@ -140,6 +174,9 @@ test.DropCoin(2)
 test.DropCoin(3)
 test.DropCoin(4)
 test.DropCoin(1)
+test.DropCoin(2)
+test.DropCoin(2)
+
 
 for elem in test._gameBoard[::-1]:
     print(elem)

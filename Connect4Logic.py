@@ -1,7 +1,4 @@
 import random
-
-
-
 from Errors import *
 
 
@@ -14,7 +11,6 @@ class MainLogic:
         self._winner = None
         self._colorOfActivePlayer = None
         self._numberOfConnectedToWin = None
-
 
 
     def WhoStarts(self):
@@ -70,11 +66,10 @@ class MainLogic:
             maxConnectedByFirstPlayer = 0
             maxConnectedBySecondPlayer = 0
 
+
+
     def _CheckWinVertially(self):
-        flippedGameBoard = [[x[y] for x in self._gameBoard] for y in range(len(self._gameBoard) +1)]
-        # for elem in flippedGameBoard:
-        #     print(elem)
-        # print()
+        flippedGameBoard = [[x[y] for x in self._gameBoard] for y in range(0,self._numberOfCols)]
         self._CheckWinHorizontally(flippedGameBoard)
 
     def CheckWinDiagonally(self):
@@ -87,20 +82,14 @@ class MainLogic:
                 fdiag[x + y].append(self._gameBoard[y][x])
                 bdiag[x - y - min_bdiag].append(self._gameBoard[y][x])
 
-        # print(fdiag)
-        # print(bdiag)
-
         self._CheckWinHorizontally(fdiag)
         self._CheckWinHorizontally(bdiag)
-
 
 
     def CheckWin(self):
         self._CheckWinHorizontally(self._gameBoard)
         self._CheckWinVertially()
         self.CheckWinDiagonally()
-
-
 
 class StandardRules(MainLogic):
     def __init__(self):
@@ -121,21 +110,16 @@ class StandardRules(MainLogic):
     @property
     def WhoW(self):
         return self._whoWins
-
+    @property
     def colorOfActivePlayer(self):
         return self._colorOfActivePlayer
-
+    @property
     def Board(self):
         return self._gameBoard
 
-
+    @property
     def ActivePlayer(self):
         return self._whosTurn
-
-
-
-
-
 
     def WhoWins(self):
         if self._winner is not None:
@@ -146,14 +130,10 @@ class StandardRules(MainLogic):
 
 
 
-
-
 class FiveInARow(MainLogic):
     def __init__(self):
         super().__init__(9,6)
         self._numberOfMovesInGame = 0
-
-
         self._whosTurn = self.WhoStarts();
         for i in range(0,self._numberOfRows):
             self.DropCoin(1)
@@ -163,7 +143,6 @@ class FiveInARow(MainLogic):
             self.DropCoin(9)
             self.ChangeActivePlayer()
             self._numberOfMovesInGame += 1
-
         self.ChangeActivePlayer()
         self._numberOfConnectedToWin = 5
 
@@ -179,12 +158,14 @@ class FiveInARow(MainLogic):
     def WhoW(self):
         return self._whoWins
 
+    @property
     def colorOfActivePlayer(self):
         return self._colorOfActivePlayer
-
+    @property
     def Board(self):
         return self._gameBoard
 
+    @property
     def ActivePlayer(self):
         return self._whosTurn
 
@@ -195,33 +176,6 @@ class FiveInARow(MainLogic):
             return 0
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-test = StandardRules()
-#print('\n'.join([str(lst) for lst in test._gameBoard]))
-test.DropCoin(1)
-test.DropCoin(2)
-test.DropCoin(3)
-test.DropCoin(4)
-test.DropCoin(1)
-test.DropCoin(2)
-test.DropCoin(2)
-
-
-for elem in test._gameBoard[::-1]:
-    print(elem)
-#
-#print(test.IsTie())
 
 
 

@@ -1,8 +1,8 @@
 import tkinter
+import Errors
 from tkinter import *
 from Connect4Logic import StandardRules,FiveInARow
 from PIL import ImageTk,Image
-import Errors
 from time import sleep
 
 
@@ -11,24 +11,15 @@ class GraphicalInterfaceForGame:
         self._mainWindow = Tk()
         self._mainWindow.title("Connect 4 by Radoslaw Suder")
         self._gameMode = "Klasyczna"
-
         self.GraphicForClassicGame()
-        #self.GraphicsForFiveInARow()
         self._mainWindow.mainloop()
-
-
-
-    @property
-    def mainWindow(self):
-        return self._mainWindow
 
 
     def ChangeGameMode(self,gameMode):
         if gameMode == "Klasyczna":
             self._gameMode = gameMode
-        elif gameMode == "FiveInARow":
+        elif gameMode == "Pięć w rzędzie":
             self._gameMode = gameMode
-
 
 
     def GraphicForClassicGame(self):
@@ -37,7 +28,7 @@ class GraphicalInterfaceForGame:
         self._mainWindow.geometry("700x660")
         self._mainWindow.resizable(0, 0)
 
-        self._header = self._CreateHeader()
+        self._header = self._CreateHeader(75)
 
         self._blueImage = Image.open("images\\red_full.png")
         self._yellowImage = Image.open("images\\yellow_full.png")
@@ -49,17 +40,14 @@ class GraphicalInterfaceForGame:
         self._barToDropCoins = self._CreateBarToDropCoins()
         self.ChangeColorOfCoinsInHeader()
         self._board = self._CreateBoard(700,600)
-
-
         self._endGameWithTie = None
 
     def GraphicsForFiveInARow(self):
         self._logic = FiveInARow()
-
         self._mainWindow.geometry("900x660")
         self._mainWindow.resizable(0, 0)
 
-        self._header = self._CreateHeader()
+        self._header = self._CreateHeader(100)
 
         self._blueImage = Image.open("images\\red_full.png")
         self._yellowImage = Image.open("images\\yellow_full.png")
@@ -72,25 +60,20 @@ class GraphicalInterfaceForGame:
         self.ChangeColorOfCoinsInHeader()
         self._board = self._CreateBoard(900,600)
         self.PrintCoins()
-
         self._endGameWithTie = None
 
 
-    def _CreateHeader(self):
+    def _CreateHeader(self,widthOfLabel):
         headerFrame = LabelFrame(self._mainWindow)
         headerFrame.place(x= 0, y = 0, height = 200, width = self._mainWindow.winfo_width())
         headerFrame.pack()
-
         clicked = StringVar()
         clicked.set(self._gameMode)
-        dropOptionsMenu = OptionMenu(headerFrame,clicked,"Klasyczna", "FiveInARow", command= lambda s:[self.ChangeGameMode(s),self.Restart()])
+        dropOptionsMenu = OptionMenu(headerFrame,clicked,"Klasyczna", "Pięć w rzędzie", command= lambda s:[self.ChangeGameMode(s),self.Restart()])
         dropOptionsMenu.grid(row = 0, column = 0)
-
-
-        whosTurnLabel = Label(headerFrame, text = "Tura Gracza " + str(self._logic.ActivePlayer()),width = 70,
-                              bg = self._logic.colorOfActivePlayer())
+        whosTurnLabel = Label(headerFrame, text = "Tura Gracza " + str(self._logic.ActivePlayer),width = widthOfLabel,
+                              bg = self._logic.colorOfActivePlayer)
         whosTurnLabel.grid(row = 0, column = 1)
-
         resetButton = Button(headerFrame,text = "Restart Gry", command = lambda:self.Restart())
         resetButton.grid(row =0, column = 2 )
 
@@ -101,12 +84,10 @@ class GraphicalInterfaceForGame:
         coinTossFrame = Frame(self._mainWindow,bg = "black")
         coinTossFrame.place(x=0,y = 0, height = 100,width = self._mainWindow.winfo_width())
 
-
         for eachColumn in range(0,self._logic.numberOfCols):
             button = Button(coinTossFrame,bg = "black",
                             command = lambda columnToDropCoin = eachColumn +1 : self.DropCoin(columnToDropCoin)  )
             button.grid(row=0, column=eachColumn, padx= 37)
-
 
         coinTossFrame.pack()
         return coinTossFrame
@@ -115,7 +96,6 @@ class GraphicalInterfaceForGame:
 
     def _CreateBoard(self,widthOfWindow,heightOfWindow):
         boardGraphical = Canvas(self._mainWindow,width = widthOfWindow, height = heightOfWindow, bg = "blue")
-
         boardGraphical.pack()
 
         for coinsForColums in range(0,self._logic.numberOfCols):
@@ -137,41 +117,27 @@ class GraphicalInterfaceForGame:
         except Errors.FullGameBoardException:
             self._endGameWithTie = True
 
-
-
-
         self.AnimateDropingCoin(columnToDropCoin)
         self.PrintCoins()
 
         self._logic.CheckWin()
         if self._logic.WhoWins() == 1 or self._logic.WhoWins() == 2:
-            #self.BlockButtonsForDroppingCoins()
             win = self.PopupForWinner()
             self._mainWindow.wait_window(win)
             return
 
-            #self.Restart()
         if self._endGameWithTie == True:
             full = self.PopupFullGameBoard()
             self._mainWindow.wait_window(full)
             return
 
-
         self._logic.ChangeActivePlayer()
 
-        #if 'normal' == self._mainWindow.state():
-
-        self._header.winfo_children()[1].configure(text = "Tura Gracza " + str(self._logic.ActivePlayer()),
-                                               bg = self._logic.colorOfActivePlayer())
-
-
+        self._header.winfo_children()[1].configure(text = "Tura Gracza " + str(self._logic.ActivePlayer),
+                                               bg = self._logic.colorOfActivePlayer)
 
         self.ChangeColorOfCoinsInHeader()
         self.UnlockButtonsForDroppingCoins()
-
-        #print(self._header.)
-
-        #self._header.update()
 
 
 
@@ -189,21 +155,18 @@ class GraphicalInterfaceForGame:
 
     def ChangeColorOfCoinsInHeader(self):
         for numberOfButtons in range(0,self._logic.numberOfCols):
-            if self._logic.ActivePlayer() == 1:
+            if self._logic.ActivePlayer == 1:
                 self._barToDropCoins.winfo_children()[numberOfButtons].configure(image = self._image1)
             else:
                 self._barToDropCoins.winfo_children()[numberOfButtons].configure(image = self._image2)
 
 
     def PrintCoins(self):
-        # for elem in self._logic.Board()[::-1]:
-        #     print(elem)
         iter = 0
         iter2= 0
 
-        for eachRow in self._logic.Board()[::-1]:
+        for eachRow in self._logic.Board[::-1]:
             for oneElemInRow in eachRow:
-                #print(eachRow)
                 if oneElemInRow == 1:
                     coord = ( iter2 * 100, iter*100, iter2*100 +100, iter * 100 + 100)
                     self._board.create_oval(coord, fill ="red")
@@ -217,27 +180,24 @@ class GraphicalInterfaceForGame:
 
 
     def AnimateDropingCoin(self,column):
-        #print()
         iter = 0
-        for eachRow in self._logic.Board()[::-1]:
+        for eachRow in self._logic.Board[::-1]:
             if eachRow[column-1] is not None:
                 coordStart = ((column-1) * 100, 0, ((column-1) * 100) + 100, 100)
-                coin = self._board.create_oval(coordStart, fill = self._logic.colorOfActivePlayer())
+                coin = self._board.create_oval(coordStart, fill = self._logic.colorOfActivePlayer)
 
                 for elem in range(0, iter * 100):
-
-
                     self._board.move(coin, 0, 1)
                     self._mainWindow.update()
                 break
             iter += 1
 
     def PopupForWinner(self):
-        top = Toplevel(width = 300, height = 100, bg = self._logic.colorOfActivePlayer() )
+        top = Toplevel(width = 300, height = 100, bg = self._logic.colorOfActivePlayer )
         top.resizable(0,0)
         top.title("Wygrana")
         congrats = Label(top, text = "Wygrał Gracz "  + str(self._logic.WhoWins()) ,font = ("Arial",31),
-                         bg = self._logic.colorOfActivePlayer()    )
+                         bg = self._logic.colorOfActivePlayer   )
         congrats.place(x=0, y=0)
         okButton =  Button(top,text = "Zakończ" , command = lambda:[top.destroy(),self.Restart()] )
         okButton.place(x=125,y=60)
@@ -265,30 +225,17 @@ class GraphicalInterfaceForGame:
         okButton.place(x=125,y=60)
 
 
-
-
-
     def Restart(self):
         self._board.destroy()
         self._barToDropCoins.destroy()
-
-
         self._header.destroy()
-
-
-        # for buttonNr in range(0,self._logic.numberOfCols):
-        #     self._barToDropCoins.winfo_children()[buttonNr].configure(command = print("test"))
-        #if self._header.winfo_children()[0]
 
         if self._gameMode == "Klasyczna":
             self.GraphicForClassicGame()
-        elif self._gameMode == "FiveInARow":
+        elif self._gameMode == "Pięć w rzędzie":
             self.GraphicsForFiveInARow()
 
 
-
-    # def mainLoop(self):
-    #     self._mainWindow.mainloop()
 
 
 

@@ -11,6 +11,8 @@ class MainLogic:
         self._winner = None
         self._colorOfActivePlayer = None
         self._numberOfConnectedToWin = None
+        self._nextTurnNumberGen = self.GenerateTurnNumber()
+        self._nrOfTurn = None
 
 
     def WhoStarts(self):
@@ -24,7 +26,7 @@ class MainLogic:
             for rows in self._gameBoard:
                 if rows[column-1] is None:
                     rows[column-1] = self._whosTurn
-                    self._numberOfMovesInGame += 1
+                    self._nrOfTurn =  next(self._nextTurnNumberGen)
                     if self._IsTie():
                         raise FullGameBoardException("Limit ruchow wyczerpany")
                     break
@@ -42,7 +44,11 @@ class MainLogic:
             self._colorOfActivePlayer = "red"
 
     def _IsTie(self):
-        return self._numberOfMovesInGame == self._numberOfRows * self._numberOfCols
+        return self._nrOfTurn == self._numberOfRows * self._numberOfCols
+
+    def GenerateTurnNumber(self):
+        for turnNr in range(1,(self._numberOfRows*self._numberOfCols)+1):
+            yield turnNr
 
 
     def _CheckWinHorizontally(self,board):
@@ -72,7 +78,7 @@ class MainLogic:
         flippedGameBoard = [[x[y] for x in self._gameBoard] for y in range(0,self._numberOfCols)]
         self._CheckWinHorizontally(flippedGameBoard)
 
-    def CheckWinDiagonally(self):
+    def _CheckWinDiagonally(self):
         fdiag = [[] for forwardDiag in range(self.numberOfRows + self.numberOfCols - 1)]
         bdiag = [[] for backDiag in range(len(fdiag))]
         min_bdiag = self.numberOfRows + 1
@@ -89,7 +95,7 @@ class MainLogic:
     def CheckWin(self):
         self._CheckWinHorizontally(self._gameBoard)
         self._CheckWinVertially()
-        self.CheckWinDiagonally()
+        self._CheckWinDiagonally()
 
 class StandardRules(MainLogic):
     def __init__(self):

@@ -1,9 +1,11 @@
 import tkinter
 import Errors
+import math
 from tkinter import *
-from Connect4Logic import StandardRules,FiveInARow
+from Connect4Logic import StandardRules,FiveInARow,PlayWithAI
 from PIL import ImageTk,Image
 from time import sleep
+
 
 
 class GraphicalInterfaceForGame:
@@ -19,6 +21,8 @@ class GraphicalInterfaceForGame:
         if gameMode == "Klasyczna":
             self._gameMode = gameMode
         elif gameMode == "Pięć w rzędzie":
+            self._gameMode = gameMode
+        elif gameMode == "Gra z Komputerem":
             self._gameMode = gameMode
 
 
@@ -62,6 +66,26 @@ class GraphicalInterfaceForGame:
         self.PrintCoins()
         self._endGameWithTie = None
 
+    def GraphicsForPlayWithAi(self):
+        self._logic = PlayWithAI()
+
+        self._mainWindow.geometry("700x660")
+        self._mainWindow.resizable(0, 0)
+
+        self._header = self._CreateHeader(68)
+
+        self._blueImage = Image.open("images\\red_full.png")
+        self._yellowImage = Image.open("images\\yellow_full.png")
+        self._resized_image1 = self._blueImage.resize((20, 20), Image.ANTIALIAS)
+        self._resized_image2 = self._yellowImage.resize((20, 20), Image.ANTIALIAS)
+        self._image1 = ImageTk.PhotoImage(self._resized_image1)
+        self._image2 = ImageTk.PhotoImage(self._resized_image2)
+
+        self._barToDropCoins = self._CreateBarToDropCoins()
+        self.ChangeColorOfCoinsInHeader()
+        self._board = self._CreateBoard(700,600)
+        self._endGameWithTie = None
+
 
     def _CreateHeader(self,widthOfLabel):
         headerFrame = LabelFrame(self._mainWindow)
@@ -69,7 +93,7 @@ class GraphicalInterfaceForGame:
         headerFrame.pack()
         clicked = StringVar()
         clicked.set(self._gameMode)
-        dropOptionsMenu = OptionMenu(headerFrame,clicked,"Klasyczna", "Pięć w rzędzie", command= lambda s:[self.ChangeGameMode(s),self.Restart()])
+        dropOptionsMenu = OptionMenu(headerFrame,clicked,"Klasyczna", "Pięć w rzędzie","Gra z Komputerem", command= lambda s:[self.ChangeGameMode(s),self.Restart()])
         dropOptionsMenu.grid(row = 0, column = 0)
         whosTurnLabel = Label(headerFrame, text = "Tura Gracza " + str(self._logic.ActivePlayer),width = widthOfLabel,
                               bg = self._logic.colorOfActivePlayer)
@@ -85,12 +109,18 @@ class GraphicalInterfaceForGame:
         coinTossFrame.place(x=0,y = 0, height = 100,width = self._mainWindow.winfo_width())
 
         for eachColumn in range(0,self._logic.numberOfCols):
-            button = Button(coinTossFrame,bg = "black",
+            if self._gameMode == "Gra z Komputerem":
+                button = Button(coinTossFrame, bg="black",
+                                command=lambda columnToDropCoin=eachColumn + 1: [self.DropCoin(columnToDropCoin),
+                                                                                 self.DropCoinAI()] )
+            else:
+                button = Button(coinTossFrame,bg = "black",
                             command = lambda columnToDropCoin = eachColumn +1 : self.DropCoin(columnToDropCoin)  )
             button.grid(row=0, column=eachColumn, padx= 37)
 
         coinTossFrame.pack()
         return coinTossFrame
+
 
 
 
@@ -138,6 +168,40 @@ class GraphicalInterfaceForGame:
 
         self.ChangeColorOfCoinsInHeader()
         self.UnlockButtonsForDroppingCoins()
+
+    def DropCoinAI(self):
+        aiWillDropCoinAtColumn = self._logic.AiMove()
+        self.BlockButtonsForDroppingCoins()
+
+        try:
+            self._logic.DropCoin(aiWillDropCoinAtColumn)
+        except Errors.FullGameBoardException:
+            self._endGameWithTie = True
+
+        self.AnimateDropingCoin(aiWillDropCoinAtColumn)
+        self.PrintCoins()
+
+        self._logic.CheckWin()
+        if self._logic.WhoWins() == 1 or self._logic.WhoWins() == 2:
+            win = self.PopupForWinner()
+            self._mainWindow.wait_window(win)
+            return
+
+        if self._endGameWithTie == True:
+            full = self.PopupFullGameBoard()
+            self._mainWindow.wait_window(full)
+            return
+
+        self._logic.ChangeActivePlayer()
+
+        self._header.winfo_children()[1].configure(text="Tura Gracza " + str(self._logic.ActivePlayer),
+                                                   bg=self._logic.colorOfActivePlayer)
+
+        self.ChangeColorOfCoinsInHeader()
+        self.UnlockButtonsForDroppingCoins()
+
+
+
 
 
 
@@ -234,6 +298,8 @@ class GraphicalInterfaceForGame:
             self.GraphicForClassicGame()
         elif self._gameMode == "Pięć w rzędzie":
             self.GraphicsForFiveInARow()
+        elif self._gameMode == "Gra z Komputerem":
+            self.GraphicsForPlayWithAi()
 
 
 

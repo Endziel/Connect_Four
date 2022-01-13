@@ -1,5 +1,6 @@
 import random
 from Errors import *
+import AI
 
 
 class MainLogic:
@@ -79,12 +80,12 @@ class MainLogic:
         self._CheckWinHorizontally(flippedGameBoard)
 
     def _CheckWinDiagonally(self):
-        fdiag = [[] for forwardDiag in range(self.numberOfRows + self.numberOfCols - 1)]
+        fdiag = [[] for forwardDiag in range(self.numberOfRows + self._numberOfCols - 1)]
         bdiag = [[] for backDiag in range(len(fdiag))]
-        min_bdiag = self.numberOfRows + 1
+        min_bdiag = self._numberOfRows + 1
 
-        for x in range(self.numberOfCols):
-            for y in range(self.numberOfRows):
+        for x in range(self._numberOfCols):
+            for y in range(self._numberOfRows):
                 fdiag[x + y].append(self._gameBoard[y][x])
                 bdiag[x - y - min_bdiag].append(self._gameBoard[y][x])
 
@@ -174,6 +175,49 @@ class FiveInARow(MainLogic):
     @property
     def ActivePlayer(self):
         return self._whosTurn
+
+    def WhoWins(self):
+        if self._winner is not None:
+            return self._winner
+        else:
+            return 0
+
+class PlayWithAI(MainLogic):
+    def __init__(self):
+        super().__init__(7, 6)
+        self._whosTurn = self.WhoStarts();
+        self.ChangeActivePlayer()
+        self._numberOfMovesInGame = 0
+        self._numberOfConnectedToWin = 4
+        self._ai = AI.AI(random.choice([1,2]))
+
+
+    @property
+    def numberOfCols(self):
+        return self._numberOfCols
+
+    @property
+    def numberOfRows(self):
+        return self._numberOfRows
+
+    @property
+    def WhoW(self):
+        return self._whoWins
+
+    @property
+    def colorOfActivePlayer(self):
+        return self._colorOfActivePlayer
+
+    @property
+    def Board(self):
+        return self._gameBoard
+
+    @property
+    def ActivePlayer(self):
+        return self._whosTurn
+
+    def AiMove(self):
+        return self._ai.PickbestMove(self._gameBoard)
 
     def WhoWins(self):
         if self._winner is not None:

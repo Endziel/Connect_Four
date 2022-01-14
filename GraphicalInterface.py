@@ -1,4 +1,3 @@
-import tkinter
 import Errors
 import math
 from tkinter import *

@@ -5,7 +5,7 @@ import AI
 
 class MainLogic:
     '''
-    Klasa odpowiedzialna za glowna logige do gry Connect4
+    Klasa odpowiedzialna za glowna logike do gry Connect4
     '''
     def __init__(self,numberOfCols,numberOfRows):
         self._numberOfRows = numberOfRows             #ilosc wierszy w planszy

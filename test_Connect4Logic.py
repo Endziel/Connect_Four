@@ -3,6 +3,9 @@ import Connect4Logic
 import Errors
 
 class TestLogicForStandardConnect4(unittest.TestCase):
+    '''
+    Testy dla podstawowego trybu Connect4
+    '''
     def setUp(self):
         self.game = Connect4Logic.StandardRules()
         self.whoStartedShouldWin = self.game.ActivePlayer
@@ -109,6 +112,9 @@ class TestLogicForStandardConnect4(unittest.TestCase):
 
 
 class TestLogicForFiveInARow(unittest.TestCase):
+    '''
+    Testy dla trybu z wieksza plansza 9x6
+    '''
     def setUp(self):
         self.game = Connect4Logic.FiveInARow()
         self.whoStartedShouldWin = self.game.ActivePlayer
